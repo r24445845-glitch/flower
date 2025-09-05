@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopCity - Buy and Sell Locally</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.5);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        .hidden-modal {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .visible-modal {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .hidden-modal .modal-content {
+            transform: translateY(-50px);
+        }
+        .visible-modal .modal-content {
+            transform: translateY(0);
+        }
+        .btn-primary {
+            @apply bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-200;
+        }
+        .btn-secondary {
+            @apply bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-all duration-200;
+        }
+        .input-field {
+            @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- App Container -->
+    <div id="app" class="min-h-screen">
+
+        <!-- Header -->
+        <header class="gradient-bg text-white shadow-lg sticky top-0 z-40">
+            <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <h1 class="text-2xl md:text-3xl font-bold tracking-tight">ShopCity</h1>
+                <div class="flex items-center space-x-4">
+                    <button id="auth-button" class="btn-primary">Login</button>
+                </div>
+            </nav>
+        </header>
+        
+        <!-- Main Content (authenticated view) -->
+        <main id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8 hidden">
+            <!-- Welcome Message -->
+            <div class="text-center mb-8">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Welcome to ShopCity</h2>
+                <p id="welcome-user" class="text-gray-600 mt-2"></p>
+            </div>
+
+            <!-- Search and Categories -->
+            <div class="mb-8 p-6 bg-white rounded-xl shadow-md">
+                <div class="relative mb-4">
+                    <input type="text" id="search-input" placeholder="Search for products..." class="input-field pl-10">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-center gap-2 sm:gap-4">
+                    <button class="category-btn btn-secondary" data-category="All">All</button>
+                    <button class="category-btn btn-secondary" data-category="Fashion">Fashion</button>
+                    <button class="category-btn btn-secondary" data-category="Groceries">Groceries</button>
+                    <button class="category-btn btn-secondary" data-category="Accessories">Accessories</button>
+                    <button class="category-btn btn-secondary" data-category="Home">Home</button>
+                    <button class="category-btn btn-secondary" data-category="Medicines">Medicines</button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="mb-6 border-b border-gray-200">
+                <nav class="flex space-x-4" aria-label="Tabs">
+                    <button id="tab-products" class="tab-btn border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Products in Your City</button>
+                    <button id="tab-orders" class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">My Orders & Sales</button>
+                    <button id="tab-reviews" class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">App Review</button>
+                    <button id="tab-about" class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">About</button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="tab-content">
+                <!-- Products -->
+                <div id="content-products" class="tab-pane">
+                    <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <!-- Product cards will be injected here -->
+                    </div>
+                    <div id="no-products" class="text-center py-12 text-gray-500 hidden">
+                        <i data-lucide="shopping-basket" class="mx-auto h-12 w-12"></i>
+                        <p class="mt-4">No products found. Try a different search or category!</p>
+                    </div>
+                </div>
+                <!-- Orders -->
+                <div id="content-orders" class="tab-pane hidden p-6 bg-white rounded-xl shadow-md">
+                    <h3 class="text-xl font-bold mb-4">Your Orders & Sales Notifications</h3>
+                    <div id="order-list" class="space-y-4">
+                         <!-- Order items will be injected here -->
+                    </div>
+                     <div id="no-orders" class="text-center py-12 text-gray-500 hidden">
+                        <i data-lucide="mail-open" class="mx-auto h-12 w-12"></i>
+                        <p class="mt-4">You have no orders or sales notifications yet.</p>
+                    </div>
+                </div>
+                <!-- App Review -->
+                <div id="content-reviews" class="tab-pane hidden p-6 bg-white rounded-xl shadow-md max-w-2xl mx-auto">
+                    <h3 class="text-xl font-bold mb-4">Leave a Review for ShopCity</h3>
+                    <p class="text-gray-600 mb-4">We'd love to hear your feedback!</p>
+                    <form id="app-review-form">
+                        <textarea class="input-field" rows="4" placeholder="Your review..." required></textarea>
+                        <button type="submit" class="btn-primary mt-4">Submit Review</button>
+                    </form>
+                </div>
+                <!-- About -->
+                <div id="content-about" class="tab-pane hidden p-6 bg-white rounded-xl shadow-md text-center">
+                    <h3 class="text-xl font-bold mb-2">Done By Rahul Raj and Guru Prakash</h3>
+                    <p class="text-gray-600">Specially For Cities...</p>
+                </div>
+            </div>
+
+            <!-- Floating SELL Button -->
+            <button id="sell-button" class="fixed bottom-6 right-6 btn-primary rounded-full p-4 shadow-xl z-30">
+                <i data-lucide="tag" class="h-6 w-6"></i>
+                <span class="sr-only">Sell Item</span>
+            </button>
+        </main>
+        
+        <!-- Login required view -->
+        <div id="login-required-view" class="text-center p-16">
+            <h2 class="text-2xl font-bold text-gray-700">Please login to continue</h2>
+            <p class="text-gray-500 mt-2">Access your local marketplace with one click.</p>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center p-4 hidden-modal z-50">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 text-center">
+             <h2 class="text-2xl font-bold mb-6">Join ShopCity</h2>
+             <p class="text-gray-600 mb-8">Sign in with Google to start buying and selling in your city.</p>
+             <button id="google-signin-btn" class="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"></path>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"></path>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"></path>
+                </svg>
+                Sign in with Google
+             </button>
+             <button id="close-auth-modal-btn" class="mt-4 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Sell Product Modal -->
+    <div id="sell-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center p-4 hidden-modal z-50">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-md p-8">
+            <h2 class="text-2xl font-bold mb-6">Sell a Product</h2>
+            <form id="sell-form">
+                <div class="space-y-4">
+                    <input id="product-name" type="text" placeholder="Product Name" class="input-field" required>
+                    <!-- For a real app, use Firebase Storage and a file input. For this example, we use a URL for simplicity. -->
+                    <input id="product-image" type="url" placeholder="Image URL (e.g., https://...)" class="input-field" required>
+                    <textarea id="product-description" placeholder="Description (optional)" class="input-field" rows="3"></textarea>
+                    <input id="product-price" type="number" placeholder="Price in Rupees (₹)" class="input-field" required min="0" step="0.01">
+                    <select id="product-category" class="input-field" required>
+                        <option value="" disabled selected>Select Category</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Home">Home</option>
+                        <option value="Medicines">Medicines</option>
+                    </select>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" id="cancel-sell" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Finish & Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Product Detail Modal -->
+    <div id="product-detail-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center p-4 hidden-modal z-50 overflow-y-auto">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
+            <div id="product-detail-content">
+                <!-- Product details will be injected here -->
+            </div>
+             <div class="mt-6 flex justify-end">
+                <button type="button" id="close-product-detail" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Generic Message/Notification Modal -->
+    <div id="message-modal" class="modal-backdrop fixed inset-0 flex items-center justify-center p-4 hidden-modal z-50">
+        <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 text-center">
+            <p id="message-text" class="text-lg"></p>
+            <button id="message-close-btn" class="btn-primary mt-6">OK</button>
+        </div>
+    </div>
+
+
+    <script type="module">
+        // Firebase Imports
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyC8eHyJgkGINTMsJyqYX-o1iaSAdBy6U_4",
+            authDomain: "shopcity-demo.firebaseapp.com",
+            projectId: "shopcity-demo",
+            storageBucket: "shopcity-demo.firebasestorage.app",
+            messagingSenderId: "670232535570",
+            appId: "1:670232535570:web:7304255ce38c89b954eecb",
+            measurementId: "G-JFX8NZZ51T"
+        };
+
+  // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+
+        // --- State Management ---
+        let currentUser = null;
+        let productsUnsubscribe = null;
+        let ordersUnsubscribe = null;
+        let allProducts = [];
+
+        // --- UI Element References ---
+        const authModal = document.getElementById('auth-modal');
+        const mainContent = document.getElementById('main-content');
+        const loginRequiredView = document.getElementById('login-required-view');
+        const authButton = document.getElementById('auth-button');
+        const sellButton = document.getElementById('sell-button');
+        const sellModal = document.getElementById('sell-modal');
+        const productDetailModal = document.getElementById('product-detail-modal');
+        const productList = document.getElementById('product-list');
+        const orderList = document.getElementById('order-list');
+        const noProductsDiv = document.getElementById('no-products');
+        const noOrdersDiv = document.getElementById('no-orders');
+        
+        // --- Modal Management ---
+        const openModal = (modal) => modal.classList.replace('hidden-modal', 'visible-modal');
+        const closeModal = (modal) => modal.classList.replace('visible-modal', 'hidden-modal');
+        
+        const showMessage = (message) => {
+            document.getElementById('message-text').textContent = message;
+            openModal(document.getElementById('message-modal'));
+        };
+
+        // --- Authentication ---
+        // As requested, this makes it so the user has to log in again when the browser tab/session ends.
+        setPersistence(auth, browserSessionPersistence);
+        
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUser = user;
+                mainContent.classList.remove('hidden');
+                loginRequiredView.classList.add('hidden');
+                authButton.textContent = 'Logout';
+                document.getElementById('welcome-user').textContent = `Logged in as ${user.displayName || user.email}`;
+                fetchProducts();
+                fetchOrders();
+            } else {
+                currentUser = null;
+                mainContent.classList.add('hidden');
+                loginRequiredView.classList.remove('hidden');
+                authButton.textContent = 'Login';
+                if (productsUnsubscribe) productsUnsubscribe();
+                if (ordersUnsubscribe) ordersUnsubscribe();
+                allProducts = [];
+                renderProducts([]);
+                orderList.innerHTML = '';
+            }
+        });
+
+        // Use custom token if available, otherwise sign in anonymously to get a UID for backend rules
+        const initialAuth = async () => {
+             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } catch(e) {
+                    console.error("Custom token sign-in failed, trying anonymous", e);
+                    await signInAnonymously(auth);
+                }
+            } else {
+                // This is a fallback for local development if a custom token isn't provided.
+                await signInAnonymously(auth);
+            }
+        };
+        initialAuth();
+
+
+        // --- Firestore Data Fetching ---
+
+        // Fetch and display products in real-time
+        function fetchProducts() {
+            if (productsUnsubscribe) productsUnsubscribe();
+            const productsRef = collection(db, `/artifacts/${appId}/public/data/products`);
+            const q = query(productsRef);
+            
+            productsUnsubscribe = onSnapshot(q, (snapshot) => {
+                allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderProducts(allProducts);
+            }, (error) => {
+                console.error("Error fetching products:", error);
+                showMessage("Could not fetch products. Please try again later.");
+            });
+        }
+        
+        // Fetch and display orders/sales for the current user
+        function fetchOrders() {
+            if (!currentUser) return;
+            if (ordersUnsubscribe) ordersUnsubscribe();
+            const ordersRef = collection(db, `/artifacts/${appId}/users/${currentUser.uid}/orders`);
+            const q = query(ordersRef);
+
+            ordersUnsubscribe = onSnapshot(q, (snapshot) => {
+                const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderOrders(orders);
+            }, (error) => {
+                console.error("Error fetching orders:", error);
+            });
+        }
+
+        // --- Rendering ---
+        
+        function renderProducts(products) {
+            productList.innerHTML = '';
+            if (products.length === 0) {
+                noProductsDiv.classList.remove('hidden');
+            } else {
+                noProductsDiv.classList.add('hidden');
+            }
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-md overflow-hidden transform hover:-translate-y-1 transition-all duration-300 cursor-pointer';
+                card.innerHTML = `
+                    <img class="h-48 w-full object-cover" src="${product.imageUrl}" alt="${product.name}" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e2e8f0/334155?text=Image+Not+Found';">
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 truncate">${product.name}</h3>
+                        <p class="text-indigo-600 font-bold mt-1">₹${product.price}</p>
+                    </div>
+                `;
+                card.addEventListener('click', () => showProductDetail(product.id));
+                productList.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+        
+        function renderOrders(orders) {
+            orderList.innerHTML = '';
+            if (orders.length === 0) {
+                noOrdersDiv.classList.remove('hidden');
+            } else {
+                noOrdersDiv.classList.add('hidden');
+            }
+            orders.forEach(order => {
+                const item = document.createElement('div');
+                item.className = 'p-4 border rounded-lg bg-gray-50';
+                item.innerHTML = `
+                    <p class="font-semibold">Sale Notification</p>
+                    <p class="text-sm text-gray-700">A user (<span class="font-medium">${order.buyerEmail}</span>) wants to buy your product: <span class="font-medium">${order.productName}</span>.</p>
+                    <p class="text-xs text-gray-500 mt-1">${new Date(order.timestamp?.toDate()).toLocaleString()}</p>
+                `;
+                orderList.appendChild(item);
+            });
+        }
+
+        // --- Product Detail Logic ---
+        async function showProductDetail(productId) {
+            try {
+                const productRef = doc(db, `/artifacts/${appId}/public/data/products`, productId);
+                const productSnap = await getDoc(productRef);
+
+                if (productSnap.exists()) {
+                    const product = { id: productSnap.id, ...productSnap.data() };
+                    const content = document.getElementById('product-detail-content');
+                    content.innerHTML = `
+                        <img class="w-full h-64 object-contain rounded-lg mb-4 bg-gray-100" src="${product.imageUrl}" alt="${product.name}" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e2e8f0/334155?text=Image';">
+                        <h2 class="text-3xl font-bold mb-2">${product.name}</h2>
+                        <p class="text-2xl font-bold text-indigo-600 mb-4">₹${product.price}</p>
+                        <p class="text-gray-600 mb-4">${product.description || 'No description available.'}</p>
+                        <p class="text-sm text-gray-500">Sold by: ${product.sellerEmail}</p>
+                        <div class="mt-6">
+                             ${(currentUser && product.sellerId === currentUser.uid)
+                                ? `<p class="text-center font-semibold text-green-600 bg-green-100 p-3 rounded-lg">This is your product listing.</p>`
+                                : `<button id="buy-now-btn" data-product-id="${product.id}" data-product-name="${product.name}" data-seller-id="${product.sellerId}" class="btn-primary w-full">Buy Now</button>`
+                            }
+                        </div>
+                        <div class="mt-8">
+                            <h3 class="text-xl font-bold mb-4">Reviews</h3>
+                            <!-- Review submission and list will go here -->
+                            <p class="text-gray-500">Review functionality coming soon!</p>
+                        </div>
+                    `;
+                    openModal(productDetailModal);
+                } else {
+                    console.error("No such document!");
+                    showMessage("Sorry, this product could not be found.");
+                }
+            } catch (error) {
+                console.error("Error getting product details:", error);
+                showMessage("An error occurred while fetching product details.");
+            }
+        }
+        
+        // --- Event Listeners ---
+        
+        // Auth Button
+        authButton.addEventListener('click', () => {
+            if (currentUser) {
+                signOut(auth);
+            } else {
+                openModal(authModal);
+            }
+        });
+        
+        // Google Sign In
+        document.getElementById('google-signin-btn').addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                closeModal(authModal);
+            } catch (error) {
+                console.error("Google Sign-In Error:", error);
+                showMessage(`Could not sign in with Google: ${error.message}`);
+            }
+        });
+
+        document.getElementById('close-auth-modal-btn').addEventListener('click', () => closeModal(authModal));
+
+        // Sell Functionality
+        sellButton.addEventListener('click', () => {
+            if (!currentUser) {
+                showMessage("You must be logged in to sell products.");
+                openModal(authModal);
+                return;
+            }
+            openModal(sellModal);
+        });
+        document.getElementById('cancel-sell').addEventListener('click', () => closeModal(sellModal));
+        document.getElementById('sell-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                showMessage("You must be logged in to sell products.");
+                return;
+            }
+            
+            const product = {
+                name: document.getElementById('product-name').value,
+                imageUrl: document.getElementById('product-image').value,
+                description: document.getElementById('product-description').value,
+                price: parseFloat(document.getElementById('product-price').value),
+                category: document.getElementById('product-category').value,
+                sellerId: currentUser.uid,
+                sellerEmail: currentUser.email,
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                const productsRef = collection(db, `/artifacts/${appId}/public/data/products`);
+                await addDoc(productsRef, product);
+                showMessage("Product uploaded successfully!");
+                document.getElementById('sell-form').reset();
+                closeModal(sellModal);
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                showMessage("Failed to upload product. Please try again.");
+            }
+        });
+        
+        // Buy Functionality (delegated event listener)
+        document.addEventListener('click', async (e) => {
+            if (e.target && e.target.id === 'buy-now-btn') {
+                if (!currentUser) {
+                    showMessage("Please login to buy products.");
+                    return;
+                }
+                const { productId, productName, sellerId } = e.target.dataset;
+                const order = {
+                    productId,
+                    productName,
+                    sellerId,
+                    buyerId: currentUser.uid,
+                    buyerEmail: currentUser.email,
+                    status: 'new',
+                    timestamp: serverTimestamp()
+                };
+                
+                try {
+                    // Send order notification to the *seller's* private collection
+                    const sellerOrdersRef = collection(db, `/artifacts/${appId}/users/${sellerId}/orders`);
+                    await addDoc(sellerOrdersRef, order);
+                    closeModal(productDetailModal);
+                    showMessage("Your order has been placed! The seller will be notified.");
+                } catch (error) {
+                    console.error("Error placing order:", error);
+                    showMessage("Could not place your order. Please try again.");
+                }
+            }
+        });
+
+        // Product Detail Modal Close
+        document.getElementById('close-product-detail').addEventListener('click', () => closeModal(productDetailModal));
+        
+        // Message Modal Close
+        document.getElementById('message-close-btn').addEventListener('click', () => closeModal(document.getElementById('message-modal')));
+        
+        // Search and Filtering
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = allProducts.filter(p => 
+                p.name.toLowerCase().includes(searchTerm) ||
+                (p.description && p.description.toLowerCase().includes(searchTerm))
+            );
+            renderProducts(filtered);
+        });
+        
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const category = btn.dataset.category;
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.replace('btn-primary', 'btn-secondary'));
+                btn.classList.replace('btn-secondary', 'btn-primary');
+                
+                if (category === 'All') {
+                    renderProducts(allProducts);
+                } else {
+                    const filtered = allProducts.filter(p => p.category === category);
+                    renderProducts(filtered);
+                }
+            });
+        });
+
+        // Tab Switching
+        const tabs = document.querySelectorAll('.tab-btn');
+        const panes = document.querySelectorAll('.tab-pane');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('border-indigo-500', 'text-indigo-600');
+                    t.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                });
+                tab.classList.add('border-indigo-500', 'text-indigo-600');
+                tab.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                
+                panes.forEach(pane => pane.classList.add('hidden'));
+                const contentId = `content-${tab.id.split('-')[1]}`;
+                document.getElementById(contentId).classList.remove('hidden');
+            });
+        });
+        
+        // Final setup
+        lucide.createIcons();
+
+    </script>
+</body>
+</html>
+
